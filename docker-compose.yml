@@ -1,0 +1,31 @@
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-container
+    restart: always
+    environment:
+      POSTGRES_DB: careconnect
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  spring-boot-app:
+    build: .
+    container_name: springboot-container
+    restart: always
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/careconnect
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
