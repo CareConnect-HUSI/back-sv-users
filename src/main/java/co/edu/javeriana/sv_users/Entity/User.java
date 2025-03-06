@@ -22,8 +22,7 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String username, String password) {
-        this.id = id;
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -70,6 +69,13 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public User(Long id, String name, String mail, String password) {
+        this.id = id;
+        this.username = name;
+        this.email = mail;
+        this.password = password;
     }
  
 }

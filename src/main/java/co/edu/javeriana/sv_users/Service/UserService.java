@@ -1,68 +1,87 @@
 package co.edu.javeriana.sv_users.Service;
 
+
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import co.edu.javeriana.sv_users.DTO.UserDTO;
+import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.User;
 import co.edu.javeriana.sv_users.Repository.UserRepository;
+import co.edu.javeriana.sv_users.Security.JWTGenerator;
 
 
 @Service
-public class UserService implements CrudService<User, Long> {
+public class UserService {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JWTGenerator jwtGenerator;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // I had to change this here so that I could save the entity in a “good way”
-    // otherwise it would not let me test things.
+    @Value("${SECRET_KEY}")
+    private String secretKey;
 
-    public User save(User userEntity) {
-        String password = userEntity.getPassword();
-    
-        // Codifica solo si la contraseña no está en formato codificado
-        if (!isEncoded(password)) {
-            String encodedPassword = passwordEncoder.encode(password);
-            userEntity.setPassword(encodedPassword);
+    public Account login(UserDTO user) {
+        try {
+            String decryptedPassword = decryptPassword(user.getPassword());
+
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getEmail(), decryptedPassword));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            Long id = userRepository.findIdByMail(user.getEmail());
+            String name = userRepository.findNameByMail(user.getEmail());
+            String token = jwtGenerator.generateToken(authentication);
+
+            return new Account(id, name, token);
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Invalid credentials");
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred during login");
         }
-    
-        return userRepository.saveAndFlush(userEntity);
-    }
-    
-    private boolean isEncoded(String password) {
-        // Verifica si la contraseña ya está codificada en Base64 (ejemplo)
-        return password.matches("^[A-Za-z0-9+/=]+$") && password.length() >= 44;
-    }
-    
-
-    public User update(User userEntity) {
-        return userRepository.saveAndFlush(userEntity);
     }
 
-    @Override
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public void register(User user) {
+        try {
+            String decryptedPassword = decryptPassword(user.getPassword());
+            user.setPassword(passwordEncoder.encode(decryptedPassword));
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred during registration", e);
+        }
     }
 
-    @Override
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
+    private String decryptPassword(String encryptedPassword) {
+        try {
+            SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            byte[] decodedBytes = Base64.getDecoder().decode(encryptedPassword);
+            byte[] decrypted = cipher.doFinal(decodedBytes);
+            return new String(decrypted);
+        } catch (Exception e) {
+            throw new RuntimeException("Error decrypting password", e);
+        }
     }
-
-
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
-    public int countByRoleName(String roleName) {
-        return userRepository.countByRole_Name(roleName);
-    }
-
 }
