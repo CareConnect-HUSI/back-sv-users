@@ -26,7 +26,7 @@ public class Databaseinit implements ApplicationRunner{
         String password = "12345678";
         String passwordEncoded = passwordEncoder.encode(password);
 
-        userRepository.save(new User(null, "Lina Salamanca", "salamanca.lm@javeriana.edu.co", passwordEncoded));
+        //userRepository.save(new User(null, "Lina Salamanca", "salamanca.lm@javeriana.edu.co", passwordEncoded));
     }
     
 }

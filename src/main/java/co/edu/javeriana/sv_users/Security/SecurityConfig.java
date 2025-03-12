@@ -38,8 +38,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/login/**")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/register-nurse")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/register-patient")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/request")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/verify")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/nurses")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/set-password")).permitAll()
                         .anyRequest().authenticated()
                 )

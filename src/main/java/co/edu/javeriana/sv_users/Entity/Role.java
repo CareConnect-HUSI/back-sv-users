@@ -24,7 +24,7 @@ public class Role {
 
     @JsonIgnore
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    private List<User> users = new ArrayList<>();
+    private List<NurseEntity> users = new ArrayList<>();
 
     public Role() {
     }
