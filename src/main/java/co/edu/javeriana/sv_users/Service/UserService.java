@@ -1,7 +1,7 @@
 package co.edu.javeriana.sv_users.Service;
 
 
-import java.util.Base64;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +30,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-  
-
-
     @Autowired
     private RoleRepository roleRepository;
 
@@ -49,67 +47,88 @@ public class UserService {
 
     public Account login(UserDTO user) {
         try {
-        
-            String decryptedPassword = decryptPassword(user.getPassword());
-
-            try {
-                Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getEmail(), decryptedPassword));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                Long id = userRepository.findIdByMail(user.getEmail());
-                String name = userRepository.findNameByMail(user.getEmail());
-                String token = jwtGenerator.generateToken(authentication);
-                return new Account(id, name, token);
-            } catch (Exception e) {
-                throw new BadCredentialsException("Invalid credentials");
+            System.out.println("📌 Iniciando login para: " + user.getEmail());
+    
+            NurseEntity nurse = userRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> {
+                    System.out.println("⚠ Usuario no encontrado: " + user.getEmail());
+                    return new UsernameNotFoundException("Usuario no encontrado");
+                });
+    
+            System.out.println("🔍 Contraseña ingresada: " + user.getPassword());
+            System.out.println("🔍 Contraseña en BD: " + nurse.getPassword());
+    
+            // ⚠ Verificar si la contraseña en la BD está cifrada
+            if (!nurse.getPassword().startsWith("$2a$")) {
+                System.out.println("⚠ Contraseña no cifrada detectada. Cifrando y guardando...");
+                nurse.setPassword(passwordEncoder.encode(nurse.getPassword()));
+                userRepository.save(nurse);
             }
+    
+            // 🔒 Comparar la contraseña ingresada con la cifrada
+            if (!passwordEncoder.matches(user.getPassword(), nurse.getPassword())) {
+                System.out.println("❌ Error: Contraseña incorrecta.");
+                throw new BadCredentialsException("Credenciales incorrectas");
+            }
+    
+            System.out.println("✅ Credenciales correctas. Autenticando...");
             
-
-
-
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            String token = jwtGenerator.generateToken(authentication);
+            System.out.println("✅ Token generado: " + token);
+            
+            return new Account(nurse.getId(), nurse.getName(), token);
+            
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Invalid credentials");
+            System.out.println("❌ Error: Credenciales incorrectas.");
+            throw new BadCredentialsException("Credenciales incorrectas");
         } catch (Exception e) {
-            throw new RuntimeException("Error occurred during login");
+            System.out.println("❌ Error en login: " + e.getMessage());
+            throw new RuntimeException("Error durante el login");
         }
     }
+    
+    
+    
+
 
     public void registerPaciente(Patient paciente) {
         
     }
 
-    public boolean existsByEmail(String email) {
+    public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
-    
+        
     public void registerEnfermera(NurseEntity nurse) {
+        if (userRepository.existsByEmail(nurse.getEmail())) {
+            throw new RuntimeException("El correo ya está registrado");
+        }
     
         Role nurseRole = roleRepository.findByName("NURSE")
                 .orElseThrow(() -> new RuntimeException("El rol NURSE no existe"));
-
+    
         nurse.setRole(nurseRole);
-        
-        userRepository.save(nurse);
-}
-
-
     
-
-
-    private String decryptPassword(String encryptedPassword) {
-        try {
-            System.out.println("Desencriptando contraseña");
-            String decodedPassword = new String(Base64.getDecoder().decode(encryptedPassword), "UTF-8");
-            StringBuilder decrypted = new StringBuilder();
-    
-            for (int i = 0; i < decodedPassword.length(); i++) {
-                decrypted.append((char) (decodedPassword.charAt(i) ^ secretKey.charAt(i % secretKey.length())));
-            }
-    
-            return decrypted.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Error decrypting password", e);
+        if (nurse.getPassword() == null || nurse.getPassword().isEmpty()) {
+            nurse.setPassword(generateRandomPassword());
         }
+
+        System.out.println("🔐 Generando contraseña aleatoria: " + passwordEncoder.encode(nurse.getPassword()));
+        nurse.setPassword(passwordEncoder.encode(nurse.getPassword()));
+    
+        userRepository.save(nurse);
     }
+    
+    
+
+
+    private String generateRandomPassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
     
 }

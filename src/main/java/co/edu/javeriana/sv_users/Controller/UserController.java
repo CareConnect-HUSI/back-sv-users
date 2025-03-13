@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +44,9 @@ public class UserController {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     //http://localhost:8080/login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO user) {
@@ -66,9 +70,17 @@ public class UserController {
     @PostMapping("/register-nurse")
     public ResponseEntity<?> register(@RequestBody NurseEntity nurse) {
 
+        if (userService.emailExists(nurse.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"El correo ya está registrado\"}");
+        }
+
         Role nurseRole = roleRepository.findByName("NURSE")
                 .orElseThrow(() -> new RuntimeException("El rol NURSE no existe"));
         nurse.setRole(nurseRole);
+
+        nurse.setPassword(passwordEncoder.encode(nurse.getPassword()));
+
         userService.registerEnfermera(nurse);
         
         return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Enfermera registrada exitosamente\"}");
