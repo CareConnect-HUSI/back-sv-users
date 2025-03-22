@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/request")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/verify")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/nurses")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/patients")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/set-password")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/exists/*")).permitAll()
                         .anyRequest().authenticated()

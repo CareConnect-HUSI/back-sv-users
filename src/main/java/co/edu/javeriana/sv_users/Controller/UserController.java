@@ -9,8 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import co.edu.javeriana.sv_users.DTO.UserDTO;
-import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.NurseEntity;
 import co.edu.javeriana.sv_users.Entity.PatientEntity;
 import co.edu.javeriana.sv_users.Entity.Role;
@@ -48,29 +44,13 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     //http://localhost:8080/login
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO user) {
-        try {
-            Account account = userService.login(user);
-            return ResponseEntity.ok(account);
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("{\"error\": \"Invalid credentials\"}");
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("{\"error\": \"Authentication failed\"}");
-        } catch (Exception e) {
-            System.out.println("Error en login: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\": \"Error occurred during login\"}");
-        }
-    }
+   
 
     //http://localhost:8080/register-nurse
     @PostMapping("/register-nurse")
     public ResponseEntity<?> register(@RequestBody NurseEntity nurse) {
 
-        if (userService.emailExists(nurse.getEmail())) {
+        if (nurseService.emailExists(nurse.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("{\"error\": \"El correo ya está registrado\"}");
         }
@@ -81,7 +61,7 @@ public class UserController {
 
         nurse.setPassword(passwordEncoder.encode(nurse.getPassword()));
 
-        userService.registerEnfermera(nurse);
+        nurseService.registerEnfermera(nurse);
         
         return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Enfermera registrada exitosamente\"}");
     }
@@ -103,10 +83,9 @@ public class UserController {
     }
 
 
-
     //http://localhost:8080/nurses
     @GetMapping("/nurses")
-public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
+    public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
     try {
             Pageable pageable = PageRequest.of(page, limit);
             Page<NurseEntity> nursesPage = nurseService.findAll(pageable);
@@ -114,6 +93,24 @@ public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int lim
             return ResponseEntity.ok(Map.of(
                 "content", nursesPage.getContent(),
                 "totalElements", nursesPage.getTotalElements()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    //http://localhost:8080/patients
+    @GetMapping("/patients")
+    public ResponseEntity<?> getAllPatients(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
+    try {
+            Pageable pageable = PageRequest.of(page, limit);
+            Page<PatientEntity> patientsPage = userService.findAllPatients(pageable);
+
+            return ResponseEntity.ok(Map.of(
+                "content", patientsPage.getContent(),
+                "totalElements", patientsPage.getTotalElements()
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
