@@ -17,8 +17,9 @@ import org.springframework.stereotype.Service;
 import co.edu.javeriana.sv_users.DTO.UserDTO;
 import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.NurseEntity;
-import co.edu.javeriana.sv_users.Entity.Patient;
+import co.edu.javeriana.sv_users.Entity.PatientEntity;
 import co.edu.javeriana.sv_users.Entity.Role;
+import co.edu.javeriana.sv_users.Repository.PatientRepository;
 import co.edu.javeriana.sv_users.Repository.RoleRepository;
 import co.edu.javeriana.sv_users.Repository.UserRepository;
 import co.edu.javeriana.sv_users.Security.JWTGenerator;
@@ -29,6 +30,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -47,7 +51,7 @@ public class UserService {
 
     public Account login(UserDTO user) {
         try {
-            System.out.println("📌 Iniciando login para: " + user.getEmail());
+            System.out.println("Iniciando login para: " + user.getEmail());
     
             NurseEntity nurse = userRepository.findByEmail(user.getEmail())
                 .orElseThrow(() -> {
@@ -55,8 +59,8 @@ public class UserService {
                     return new UsernameNotFoundException("Usuario no encontrado");
                 });
     
-            System.out.println("🔍 Contraseña ingresada: " + user.getPassword());
-            System.out.println("🔍 Contraseña en BD: " + nurse.getPassword());
+            System.out.println("Contraseña ingresada: " + user.getPassword());
+            System.out.println("Contraseña en BD: " + nurse.getPassword());
     
             // ⚠ Verificar si la contraseña en la BD está cifrada
             if (!nurse.getPassword().startsWith("$2a$")) {
@@ -67,41 +71,46 @@ public class UserService {
     
             // 🔒 Comparar la contraseña ingresada con la cifrada
             if (!passwordEncoder.matches(user.getPassword(), nurse.getPassword())) {
-                System.out.println("❌ Error: Contraseña incorrecta.");
+                System.out.println("Error: Contraseña incorrecta.");
                 throw new BadCredentialsException("Credenciales incorrectas");
             }
     
-            System.out.println("✅ Credenciales correctas. Autenticando...");
+            System.out.println("Credenciales correctas. Autenticando...");
             
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
             String token = jwtGenerator.generateToken(authentication);
-            System.out.println("✅ Token generado: " + token);
+            System.out.println("Token generado: " + token);
             
             return new Account(nurse.getId(), nurse.getName(), token);
             
         } catch (BadCredentialsException e) {
-            System.out.println("❌ Error: Credenciales incorrectas.");
+            System.out.println("Error: Credenciales incorrectas.");
             throw new BadCredentialsException("Credenciales incorrectas");
         } catch (Exception e) {
-            System.out.println("❌ Error en login: " + e.getMessage());
+            System.out.println("Error en login: " + e.getMessage());
             throw new RuntimeException("Error durante el login");
         }
     }
     
     
+
+    public void registerPaciente(PatientEntity patient) {
+        System.out.println("Identidicación en el service: " + patient.getIdentificationNumber());
     
-
-
-    public void registerPaciente(Patient paciente) {
-        
+        patientRepository.save(patient);
     }
+    
 
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
+    public boolean patientExistsByIdentification(String identificationNumber, String identificationType) {
+        return patientRepository.existsByIdentificationNumberAndIdentificationType(identificationNumber, identificationType);
+    }
+    
         
     public void registerEnfermera(NurseEntity nurse) {
         if (userRepository.existsByEmail(nurse.getEmail())) {

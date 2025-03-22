@@ -27,7 +27,7 @@ public class Procedure {
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    private PatientEntity patient;
 
     public Long getId() {
         return id;
@@ -85,11 +85,11 @@ public class Procedure {
         this.duracionVisita = duracionVisita;
     }
 
-    public Patient getPatient() {
+    public PatientEntity getPatient() {
         return patient;
     }
 
-    public void setPatient(Patient patient) {
+    public void setPatient(PatientEntity patient) {
         this.patient = patient;
     }
 

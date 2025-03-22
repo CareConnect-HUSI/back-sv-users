@@ -46,8 +46,8 @@ public class SecurityConfig {
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/set-password")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/exists/*")).permitAll()
                         .anyRequest().authenticated()
-                )
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
+                );
+                //.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();

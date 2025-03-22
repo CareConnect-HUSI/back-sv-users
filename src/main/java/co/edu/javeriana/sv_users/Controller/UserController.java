@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import co.edu.javeriana.sv_users.DTO.UserDTO;
 import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.NurseEntity;
-import co.edu.javeriana.sv_users.Entity.Patient;
+import co.edu.javeriana.sv_users.Entity.PatientEntity;
 import co.edu.javeriana.sv_users.Entity.Role;
 import co.edu.javeriana.sv_users.Repository.RoleRepository;
 import co.edu.javeriana.sv_users.Service.NurseService;
@@ -88,14 +88,21 @@ public class UserController {
 
     //http://localhost:8080/register-patient
     @PostMapping("/register-patient")
-    public ResponseEntity<?> registerPatient(@RequestBody Patient patient) {
-        try {
-            userService.registerPaciente(patient);
-            return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Paciente registrado exitosamente\"}");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\": \"Error en el registro\"}");
+    public ResponseEntity<?> registerPatient(@RequestBody PatientEntity patient) {
+        System.out.println("Identidicación en el controller: " + patient.getIdentificationNumber());
+
+        if (userService.patientExistsByIdentification(patient.getIdentificationNumber(), patient.getIdentificationType())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"El paciente con ese número y tipo de identificación ya está registrado\"}");
         }
+
+        userService.registerPaciente(patient);
+        
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("{\"message\": \"Paciente registrado exitosamente\"}");
     }
+
+
 
     //http://localhost:8080/nurses
     @GetMapping("/nurses")
