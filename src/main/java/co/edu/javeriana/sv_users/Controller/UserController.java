@@ -18,11 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.javeriana.sv_users.Entity.NurseEntity;
-import co.edu.javeriana.sv_users.Entity.PatientEntity;
 import co.edu.javeriana.sv_users.Entity.Role;
 import co.edu.javeriana.sv_users.Repository.RoleRepository;
 import co.edu.javeriana.sv_users.Service.NurseService;
-import co.edu.javeriana.sv_users.Service.UserService;
 
 
 
@@ -30,10 +28,6 @@ import co.edu.javeriana.sv_users.Service.UserService;
 @RestController
 @RequestMapping("")
 public class UserController {
-
-    @Autowired
-    private UserService userService;
-
     @Autowired
     private NurseService nurseService;
 
@@ -66,23 +60,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Enfermera registrada exitosamente\"}");
     }
 
-    //http://localhost:8080/register-patient
-    @PostMapping("/register-patient")
-    public ResponseEntity<?> registerPatient(@RequestBody PatientEntity patient) {
-        System.out.println("Identidicación en el controller: " + patient.getIdentificationNumber());
-
-        if (userService.patientExistsByIdentification(patient.getIdentificationNumber(), patient.getIdentificationType())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("{\"error\": \"El paciente con ese número y tipo de identificación ya está registrado\"}");
-        }
-
-        userService.registerPaciente(patient);
-        
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("{\"message\": \"Paciente registrado exitosamente\"}");
-    }
-
-
     //http://localhost:8080/nurses
     @GetMapping("/nurses")
     public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
@@ -100,24 +77,5 @@ public class UserController {
                     .body("An unexpected error occurred: " + e.getMessage());
         }
     }
-
-    //http://localhost:8080/patients
-    @GetMapping("/patients")
-    public ResponseEntity<?> getAllPatients(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
-    try {
-            Pageable pageable = PageRequest.of(page, limit);
-            Page<PatientEntity> patientsPage = userService.findAllPatients(pageable);
-
-            return ResponseEntity.ok(Map.of(
-                "content", patientsPage.getContent(),
-                "totalElements", patientsPage.getTotalElements()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body("An unexpected error occurred: " + e.getMessage());
-        }
-    }
-
        
 }
