@@ -37,10 +37,10 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    //http://localhost:8080/login
+    //http://localhost:8085/login
    
 
-    //http://localhost:8080/register-nurse
+    //http://localhost:8085/register-nurse
     @PostMapping("/register-nurse")
     public ResponseEntity<?> register(@RequestBody NurseEntity nurse) {
 
@@ -60,7 +60,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Enfermera registrada exitosamente\"}");
     }
 
-    //http://localhost:8080/nurses
+    //http://localhost:8085/nurses
     @GetMapping("/nurses")
     public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
     try {
