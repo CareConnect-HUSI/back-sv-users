@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,9 +49,6 @@ public class EnfermeraController {
 
     @PostMapping("/registrar-enfermera")
     public ResponseEntity<EnfermeraEntity> registrar(@RequestBody EnfermeraEntity enfermera) {
-        
-        System.out.println("Turno recibido: " + enfermera.getTurnoEntity());
-        System.out.println("Nombre del turno recibido: " + (enfermera.getTurnoEntity() != null ? enfermera.getTurnoEntity().getName() : "null"));
 
         if (enfermera.getTurnoEntity() == null || enfermera.getTurnoEntity().getName() == null) {
             throw new IllegalArgumentException("El campo 'turnoEntity.name' es requerido");
@@ -59,7 +58,6 @@ public class EnfermeraController {
             throw new IllegalArgumentException("El campo 'tipoIdentificacion.name' es requerido");
         }
 
-        // Buscar turno y tipo de identificación
         TurnoEntity turno = turnoRepository.findByName(enfermera.getTurnoEntity().getName());
         TipoIdentificacionEntity tipo = tipoIdentificacionRepository.findByName(enfermera.getTipoIdentificacion().getName());
         
@@ -79,9 +77,6 @@ public class EnfermeraController {
         return ResponseEntity.ok(enfermeraGuardada);
     }
 
-
-
-
     @GetMapping("")
     public ResponseEntity<?> getAllEnfermeras(@RequestParam(defaultValue = "10") int limit,
                                               @RequestParam(defaultValue = "0") int page) {
@@ -99,4 +94,23 @@ public class EnfermeraController {
                     .body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<EnfermeraEntity> actualizar(@PathVariable Long id, @RequestBody EnfermeraEntity enfermera) {
+        EnfermeraEntity existente = enfermeraRepository.findById(id).orElseThrow(() -> new RuntimeException("No encontrada"));
+
+        TurnoEntity turno = turnoRepository.findByName(enfermera.getTurnoEntity().getName());
+        TipoIdentificacionEntity tipo = tipoIdentificacionRepository.findByName(enfermera.getTipoIdentificacion().getName());
+
+        existente.setNombre(enfermera.getNombre());
+        existente.setApellido(enfermera.getApellido());
+        existente.setNumeroIdentificacion(enfermera.getNumeroIdentificacion());
+        existente.setTelefono(enfermera.getTelefono());
+        existente.setTurnoEntity(turno);
+        existente.setTipoIdentificacion(tipo);
+
+        enfermeraRepository.save(existente);
+        return ResponseEntity.ok(existente);
+    }
+
 }
