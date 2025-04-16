@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,28 +13,29 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "tipo_identificacion")
+public class TipoIdentificacionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
-    
+
     private String name;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    private List<NurseEntity> users = new ArrayList<>();
+    @OneToMany(mappedBy = "tipoIdentificacion")
+    private List<EnfermeraEntity> enfermeras = new ArrayList<>();
 
-    public Role() {
+
+    public TipoIdentificacionEntity() {
     }
 
-    public Role(Long id, String name) {
+    public TipoIdentificacionEntity(Long id, String name) {
         this.id = id;
         this.name = name;
     }
 
     public Long getId() {
-        return this.id;
+        return id;
     }
 
     public void setId(Long id) {
@@ -43,12 +43,18 @@ public class Role {
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
+
+    public List<EnfermeraEntity> getEnfermeras() {
+        return enfermeras;
+    }
+
+    public void setEnfermeras(List<EnfermeraEntity> enfermeras) {
+        this.enfermeras = enfermeras;
+    }
 }
-
-

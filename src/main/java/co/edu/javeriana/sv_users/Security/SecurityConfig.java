@@ -1,7 +1,8 @@
-package co.edu.javeriana.sv_users.Security;
+/*package co.edu.javeriana.sv_users.Security;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,10 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +32,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-
+        .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) 
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .sessionManagement(customizer -> customizer
@@ -38,11 +40,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/login/**")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/register-nurse")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras/registrar-enfermera")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/register-patient")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/request")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/verify")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/nurses")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/patients")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/set-password")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/exists/*")).permitAll()
@@ -50,10 +52,24 @@ public class SecurityConfig {
                 );
                 //.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        //http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
     
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new PasswordEncoder() {
@@ -83,9 +99,9 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
+    /*@Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();
-    }
+    }*/
 
-}
+

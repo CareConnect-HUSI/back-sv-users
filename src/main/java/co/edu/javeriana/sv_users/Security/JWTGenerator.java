@@ -1,4 +1,4 @@
-package co.edu.javeriana.sv_users.Security;
+/*package co.edu.javeriana.sv_users.Security;
 
 import java.security.Key;
 import java.util.Date;
@@ -17,7 +17,7 @@ public class JWTGenerator {
     public static final Long EXPIRATION_TIME = 7000000L;
 
     public String generateToken(Authentication authentication) {
-        /* Datos necesarios para la creación */
+         Datos necesarios para la creación 
         String username = authentication.getName();
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + EXPIRATION_TIME);
@@ -42,4 +42,4 @@ public class JWTGenerator {
         }
     }
 
-}
+}*/

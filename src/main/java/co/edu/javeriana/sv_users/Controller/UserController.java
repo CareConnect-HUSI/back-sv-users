@@ -1,4 +1,4 @@
-package co.edu.javeriana.sv_users.Controller;
+/*package co.edu.javeriana.sv_users.Controller;
 
 import java.util.Map;
 
@@ -37,16 +37,16 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    //http://localhost:8085/login
+    //http://localhost:8088/login
    
 
-    //http://localhost:8085/register-nurse
+    //http://localhost:8088/register-nurse
     @PostMapping("/register-nurse")
     public ResponseEntity<?> register(@RequestBody NurseEntity nurse) {
 
         if (nurseService.emailExists(nurse.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("{\"error\": \"El correo ya está registrado\"}");
+                   .body("{\"error\": \"El correo ya está registrado\"}");
         }
 
         Role nurseRole = roleRepository.findByName("NURSE")
@@ -60,7 +60,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body("{\"message\": \"Enfermera registrada exitosamente\"}");
     }
 
-    //http://localhost:8085/nurses
+    //http://localhost:8088/nurses
     @GetMapping("/nurses")
     public ResponseEntity<?> getAllNurses(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int page)  {
     try {
@@ -79,3 +79,4 @@ public class UserController {
     }
        
 }
+*/
