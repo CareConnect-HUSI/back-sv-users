@@ -47,6 +47,7 @@ public class EnfermeraController {
     @Autowired
     private TipoIdentificacionRepository tipoIdentificacionRepository;
 
+    //http://localhost:8080/enfermeras/registrar-enfermera
     @PostMapping("/registrar-enfermera")
     public ResponseEntity<EnfermeraEntity> registrar(@RequestBody EnfermeraEntity enfermera) {
 
@@ -77,6 +78,7 @@ public class EnfermeraController {
         return ResponseEntity.ok(enfermeraGuardada);
     }
 
+    //http://localhost:8080/enfermeras
     @GetMapping("")
     public ResponseEntity<?> getAllEnfermeras(@RequestParam(defaultValue = "10") int limit,
                                               @RequestParam(defaultValue = "0") int page) {
@@ -95,6 +97,7 @@ public class EnfermeraController {
         }
     }
 
+    //http://localhost:8080/enfermeras/1
     @PutMapping("/{id}")
     public ResponseEntity<EnfermeraEntity> actualizar(@PathVariable Long id, @RequestBody EnfermeraEntity enfermera) {
         EnfermeraEntity existente = enfermeraRepository.findById(id).orElseThrow(() -> new RuntimeException("No encontrada"));

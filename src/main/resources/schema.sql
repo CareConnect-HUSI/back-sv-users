@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS paciente(
     telefono VARCHAR(255),
     tipo_identificacion_id BIGINT NOT NULL,
     numero_identificacion VARCHAR(255) NOT NULL,
-    fecha_nacimiento DATE,
     nombre_acudiente VARCHAR(255),
     parentezco_acudiente VARCHAR(255),
     telefono_acudiente VARCHAR(255),
