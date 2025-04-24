@@ -1,4 +1,4 @@
-package co.edu.javeriana.sv_users.Security;
+/*package co.edu.javeriana.sv_users.Security;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,8 +13,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import co.edu.javeriana.sv_users.Entity.Role;
-import co.edu.javeriana.sv_users.Repository.UserRepository;
+import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
+import co.edu.javeriana.sv_users.Entity.RolEntity;
+import co.edu.javeriana.sv_users.Repository.EnfermeraRepository;
+import co.edu.javeriana.sv_users.Repository.EnfermeraRepository;
 
 
 
@@ -22,16 +24,16 @@ import co.edu.javeriana.sv_users.Repository.UserRepository;
 public class CustomUserDetailService implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private EnfermeraRepository userRepository;
 
     @Autowired
     private JWTGenerator jwtGenerator;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        co.edu.javeriana.sv_users.Entity.NurseEntity user = userRepository.findByEmail(email).orElseThrow(
-                () -> new UsernameNotFoundException("User not found"));
-        return new User(user.getEmail(), user.getPassword(), mapRolesToAuthorities(List.of(user.getRole())));
+        co.edu.javeriana.sv_users.Entity.EnfermeraEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new User(user.getEmail(), user.getPassword(), mapRolesToAuthorities(List.of(user.getRolEntity())));
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(List<Role> roles) {
@@ -56,3 +58,4 @@ public class CustomUserDetailService implements UserDetailsService {
     }
 }
 
+*/
