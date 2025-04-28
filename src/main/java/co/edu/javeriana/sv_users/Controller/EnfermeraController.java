@@ -1,11 +1,15 @@
 package co.edu.javeriana.sv_users.Controller;
 
 import java.util.Map;
+import org.springframework.web.client.RestTemplate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +51,7 @@ public class EnfermeraController {
     @Autowired
     private TipoIdentificacionRepository tipoIdentificacionRepository;
 
-    //http://localhost:8080/enfermeras/registrar-enfermera
+    // http://localhost:8080/enfermeras/registrar-enfermera
     @PostMapping("/registrar-enfermera")
     public ResponseEntity<EnfermeraEntity> registrar(@RequestBody EnfermeraEntity enfermera) {
 
@@ -60,11 +64,13 @@ public class EnfermeraController {
         }
 
         TurnoEntity turno = turnoRepository.findByName(enfermera.getTurnoEntity().getName());
-        TipoIdentificacionEntity tipo = tipoIdentificacionRepository.findByName(enfermera.getTipoIdentificacion().getName());
-        
-        if (turno == null) throw new IllegalArgumentException("Turno no válido");
-        if (tipo == null) throw new IllegalArgumentException("Tipo de identificación no válido");
+        TipoIdentificacionEntity tipo = tipoIdentificacionRepository
+                .findByName(enfermera.getTipoIdentificacion().getName());
 
+        if (turno == null)
+            throw new IllegalArgumentException("Turno no válido");
+        if (tipo == null)
+            throw new IllegalArgumentException("Tipo de identificación no válido");
 
         RolEntity rol = rolRepository.findByName("Enfermera");
         if (rol == null) {
@@ -74,22 +80,60 @@ public class EnfermeraController {
         enfermera.setTurnoEntity(turno);
         enfermera.setTipoIdentificacion(tipo);
 
+        // Enviar la solicitud HTTP al servicio de geocodificación
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            // Crear el JSON de la solicitud
+            Map<String, String> geocodeRequest = Map.of(
+                    "direccion", enfermera.getDireccion(),
+                    "conjunto", enfermera.getConjunto(),
+                    "barrio", enfermera.getBarrio(),
+                    "ciudad", "Bogotá");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(geocodeRequest, headers);
+
+            // Hacer la solicitud POST a la URL geocode
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "http://0.0.0.0:8001/geocode", HttpMethod.POST, entity, Map.class);
+
+            // Verificar si la respuesta tiene latitud y longitud
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                Double latitud = (Double) responseBody.get("latitud");
+                Double longitud = (Double) responseBody.get("longitud");
+
+                // Actualizar la entidad enfermera con los valores de latitud y longitud
+                enfermera.setLatitud(latitud);
+                enfermera.setLongitud(longitud);
+            } else {
+                throw new IllegalArgumentException("No se pudo obtener latitud y longitud de la geocodificación.");
+            }
+        } catch (Exception e) {
+            // Manejo de excepciones si la solicitud falla
+            System.err.println("Error al hacer la solicitud de geocodificación: " + e.getMessage());
+            throw new IllegalArgumentException("Error al obtener latitud y longitud.");
+        }
+
+        // Registrar la enfermera en la base de datos
         EnfermeraEntity enfermeraGuardada = enfermeraRepository.save(enfermera);
+
         return ResponseEntity.ok(enfermeraGuardada);
     }
 
-    //http://localhost:8080/enfermeras
+    // http://localhost:8080/enfermeras
     @GetMapping("")
     public ResponseEntity<?> getAllEnfermeras(@RequestParam(defaultValue = "10") int limit,
-                                              @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(defaultValue = "0") int page) {
         try {
             Pageable pageable = PageRequest.of(page, limit);
             Page<EnfermeraEntity> enfermerasPage = enfermeraService.getAllEnfermeras(pageable);
 
             return ResponseEntity.ok(Map.of(
                     "content", enfermerasPage.getContent(),
-                    "totalElements", enfermerasPage.getTotalElements()
-            ));
+                    "totalElements", enfermerasPage.getTotalElements()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .contentType(MediaType.TEXT_PLAIN)
@@ -97,13 +141,15 @@ public class EnfermeraController {
         }
     }
 
-    //http://localhost:8080/enfermeras/1
+    // http://localhost:8080/enfermeras/1
     @PutMapping("/{id}")
     public ResponseEntity<EnfermeraEntity> actualizar(@PathVariable Long id, @RequestBody EnfermeraEntity enfermera) {
-        EnfermeraEntity existente = enfermeraRepository.findById(id).orElseThrow(() -> new RuntimeException("No encontrada"));
+        EnfermeraEntity existente = enfermeraRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No encontrada"));
 
         TurnoEntity turno = turnoRepository.findByName(enfermera.getTurnoEntity().getName());
-        TipoIdentificacionEntity tipo = tipoIdentificacionRepository.findByName(enfermera.getTipoIdentificacion().getName());
+        TipoIdentificacionEntity tipo = tipoIdentificacionRepository
+                .findByName(enfermera.getTipoIdentificacion().getName());
 
         existente.setNombre(enfermera.getNombre());
         existente.setApellido(enfermera.getApellido());
