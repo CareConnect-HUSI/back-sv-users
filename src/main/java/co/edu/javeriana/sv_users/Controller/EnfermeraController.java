@@ -168,6 +168,11 @@ public class EnfermeraController {
         existente.setTelefono(enfermera.getTelefono());
         existente.setTurnoEntity(turno);
         existente.setTipoIdentificacion(tipo);
+        existente.setDireccion(enfermera.getDireccion());
+        existente.setBarrio(enfermera.getBarrio());
+        existente.setEmail(enfermera.getEmail());
+        existente.setConjunto(enfermera.getConjunto());
+
 
         enfermeraRepository.save(existente);
         return ResponseEntity.ok(existente);
