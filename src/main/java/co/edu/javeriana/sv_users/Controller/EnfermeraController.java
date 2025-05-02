@@ -1,7 +1,6 @@
 package co.edu.javeriana.sv_users.Controller;
 
 import java.util.Map;
-import org.springframework.web.client.RestTemplate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
 import co.edu.javeriana.sv_users.Entity.RolEntity;
@@ -53,7 +53,7 @@ public class EnfermeraController {
 
     // http://localhost:8080/enfermeras/registrar-enfermera
     @PostMapping("/registrar-enfermera")
-    public ResponseEntity<EnfermeraEntity> registrar(@RequestBody EnfermeraEntity enfermera) {
+    public ResponseEntity<?> registrar(@RequestBody EnfermeraEntity enfermera) {
 
         if (enfermera.getTurnoEntity() == null || enfermera.getTurnoEntity().getName() == null) {
             throw new IllegalArgumentException("El campo 'turnoEntity.name' es requerido");
@@ -67,18 +67,29 @@ public class EnfermeraController {
         TipoIdentificacionEntity tipo = tipoIdentificacionRepository
                 .findByName(enfermera.getTipoIdentificacion().getName());
 
-        if (turno == null)
-            throw new IllegalArgumentException("Turno no válido");
-        if (tipo == null)
-            throw new IllegalArgumentException("Tipo de identificación no válido");
-
+        if (turno == null){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Turno inválido");
+        }
+        if (tipo == null){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Tipo identificación inválido");
+        }
         RolEntity rol = rolRepository.findByName("Enfermera");
         if (rol == null) {
-            throw new IllegalArgumentException("No se encontró el rol 'Enfermera'");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("No se encontró el rol de enfermera");
         }
         enfermera.setRolEntity(rol);
         enfermera.setTurnoEntity(turno);
         enfermera.setTipoIdentificacion(tipo);
+
+        boolean yaExiste = enfermeraRepository.existsByTipoIdentificacionAndNumeroIdentificacion(
+                tipo, enfermera.getNumeroIdentificacion());
+        if (yaExiste) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Ya existe una enfermera con ese número y tipo de identificación");
+        }
 
         // Enviar la solicitud HTTP al servicio de geocodificación
         try {
