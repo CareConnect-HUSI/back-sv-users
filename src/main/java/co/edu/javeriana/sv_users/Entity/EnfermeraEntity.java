@@ -30,6 +30,7 @@ public class EnfermeraEntity implements Serializable {
     private String conjunto;
     private Double latitud;
     private Double longitud;
+    private String estado;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "turno_id")
@@ -162,5 +163,13 @@ public class EnfermeraEntity implements Serializable {
 
     public void setTipoIdentificacion(TipoIdentificacionEntity tipoIdentificacion) {
         this.tipoIdentificacion = tipoIdentificacion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }
