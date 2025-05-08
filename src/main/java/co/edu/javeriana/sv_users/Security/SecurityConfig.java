@@ -29,7 +29,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(requests -> requests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras/login")).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // ToDo: Change to authenticated when finished testing
                 )
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
 

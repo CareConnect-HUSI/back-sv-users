@@ -115,10 +115,10 @@ public class EnfermeraService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         Long id = enfermeraRepository.findByEmail(user.getEmail()).getId();
-        String name = enfermeraRepository.findByEmail(user.getEmail()).getNombre();
+        String email = user.getEmail();
         String token = jwtGenerator.generateToken(authentication);
 
-        return new Account(id, name, token);
+        return new Account(id, email, token);
     }
 
     public EnfermeraEntity registrar(Map<String, Object> data) {
