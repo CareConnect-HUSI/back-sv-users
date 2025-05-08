@@ -67,11 +67,11 @@ public class EnfermeraController {
         TipoIdentificacionEntity tipo = tipoIdentificacionRepository
                 .findByName(enfermera.getTipoIdentificacion().getName());
 
-        if (turno == null){
+        if (turno == null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Turno inválido");
         }
-        if (tipo == null){
+        if (tipo == null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Tipo identificación inválido");
         }
@@ -83,6 +83,7 @@ public class EnfermeraController {
         enfermera.setRolEntity(rol);
         enfermera.setTurnoEntity(turno);
         enfermera.setTipoIdentificacion(tipo);
+        enfermera.setEstado("Activo"); 
 
         boolean yaExiste = enfermeraRepository.existsByTipoIdentificacionAndNumeroIdentificacion(
                 tipo, enfermera.getNumeroIdentificacion());
@@ -173,9 +174,31 @@ public class EnfermeraController {
         existente.setEmail(enfermera.getEmail());
         existente.setConjunto(enfermera.getConjunto());
 
-
         enfermeraRepository.save(existente);
         return ResponseEntity.ok(existente);
+    }
+
+    //http://localhost:8088/enfermeras/localidades
+    @GetMapping("/localidades")
+    public ResponseEntity<?> getLocalidades() {
+        try {
+            return ResponseEntity.ok(enfermeraService.getLocalidades());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    //http://localhost:8088/enfermeras/barrio/1
+    @GetMapping("/barrios/{codigoLocalidad}")
+    public ResponseEntity<?> getBarrios(@PathVariable String codigoLocalidad) {
+        try {
+            return ResponseEntity.ok(enfermeraService.getBarrios(codigoLocalidad));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
     }
 
 }

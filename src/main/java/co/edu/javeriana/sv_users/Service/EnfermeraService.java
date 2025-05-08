@@ -1,5 +1,6 @@
 package co.edu.javeriana.sv_users.Service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,11 +8,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import co.edu.javeriana.sv_users.Entity.BarrioEntity;
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
+import co.edu.javeriana.sv_users.Entity.LocalidadEntity;
 import co.edu.javeriana.sv_users.Entity.RolEntity;
 import co.edu.javeriana.sv_users.Entity.TipoIdentificacionEntity;
 import co.edu.javeriana.sv_users.Entity.TurnoEntity;
+import co.edu.javeriana.sv_users.Repository.BarrioRepository;
 import co.edu.javeriana.sv_users.Repository.EnfermeraRepository;
+import co.edu.javeriana.sv_users.Repository.LocalidadRepository;
 import co.edu.javeriana.sv_users.Repository.RolRepository;
 import co.edu.javeriana.sv_users.Repository.TipoIdentificacionRepository;
 import co.edu.javeriana.sv_users.Repository.TurnoRepository;
@@ -30,6 +35,12 @@ public class EnfermeraService {
 
     @Autowired
     private TipoIdentificacionRepository tipoIdentificacionRepository;
+    
+    @Autowired
+    private BarrioRepository barrioRepository;
+
+    @Autowired
+    private LocalidadRepository localidadRepository;
 
     public void registrarConNombres(Map<String, Object> data) {
         String email = (String) data.get("email");
@@ -78,5 +89,17 @@ public class EnfermeraService {
 
     public boolean emailExists(String email) {
         return enfermeraRepository.existsByEmail(email);
+    }
+
+    public List<LocalidadEntity> getLocalidades() {
+        return localidadRepository.findAll();
+    }
+
+    public List<BarrioEntity> getBarrios(String codigoLocalidad) {
+        List<BarrioEntity> barrios = barrioRepository.findByLocalidad_Codigo(codigoLocalidad);
+        if (barrios.isEmpty()) {
+            throw new RuntimeException("No se encontraron barrios para la localidad especificada");
+        }
+        return barrios;
     }
 }
