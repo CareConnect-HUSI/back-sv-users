@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import co.edu.javeriana.sv_users.DTO.UserDTO;
+import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
 import co.edu.javeriana.sv_users.Entity.RolEntity;
 import co.edu.javeriana.sv_users.Entity.TipoIdentificacionEntity;
@@ -176,6 +178,18 @@ public class EnfermeraController {
 
         enfermeraRepository.save(existente);
         return ResponseEntity.ok(existente);
+    }
+
+    // http://localhost:8080/enfermeras/login
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserDTO user) {
+        try {
+            Account account = enfermeraService.login(user);
+            return ResponseEntity.ok(account);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
+        }
     }
 
 }

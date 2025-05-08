@@ -5,8 +5,15 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import co.edu.javeriana.sv_users.DTO.UserDTO;
+import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
 import co.edu.javeriana.sv_users.Entity.RolEntity;
 import co.edu.javeriana.sv_users.Entity.TipoIdentificacionEntity;
@@ -15,6 +22,7 @@ import co.edu.javeriana.sv_users.Repository.EnfermeraRepository;
 import co.edu.javeriana.sv_users.Repository.RolRepository;
 import co.edu.javeriana.sv_users.Repository.TipoIdentificacionRepository;
 import co.edu.javeriana.sv_users.Repository.TurnoRepository;
+import co.edu.javeriana.sv_users.Security.JWTGenerator;
 
 @Service
 public class EnfermeraService {
@@ -30,6 +38,15 @@ public class EnfermeraService {
 
     @Autowired
     private TipoIdentificacionRepository tipoIdentificacionRepository;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JWTGenerator jwtGenerator;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public void registrarConNombres(Map<String, Object> data) {
         String email = (String) data.get("email");
@@ -61,7 +78,8 @@ public class EnfermeraService {
         enfermera.setDireccion((String) data.get("direccion"));
         enfermera.setTelefono((String) data.get("telefono"));
         enfermera.setEmail(email);
-        enfermera.setPassword((String) data.get("password"));
+        String password = (String) data.get("password");
+        enfermera.setPassword(passwordEncoder.encode(password));
         enfermera.setBarrio((String) data.get("barrio"));
         enfermera.setConjunto((String) data.get("conjunto"));
         enfermera.setTipoIdentificacion(tipoIdentificacionEntity);
@@ -78,5 +96,22 @@ public class EnfermeraService {
 
     public boolean emailExists(String email) {
         return enfermeraRepository.existsByEmail(email);
+    }
+
+    public Account login(UserDTO user) {
+        if (!enfermeraRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("Email does not exist");
+        }
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        Long id = enfermeraRepository.findByEmail(user.getEmail()).getId();
+        String name = enfermeraRepository.findByEmail(user.getEmail()).getNombre();
+        String token = jwtGenerator.generateToken(authentication);
+
+        return new Account(id, name, token);
     }
 }
