@@ -1,5 +1,6 @@
 package co.edu.javeriana.sv_users.Service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,9 @@ import org.springframework.web.client.RestTemplate;
 
 import co.edu.javeriana.sv_users.DTO.UserDTO;
 import co.edu.javeriana.sv_users.Entity.Account;
+import co.edu.javeriana.sv_users.Entity.BarrioEntity;
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
+import co.edu.javeriana.sv_users.Entity.LocalidadEntity;
 import co.edu.javeriana.sv_users.Entity.RolEntity;
 import co.edu.javeriana.sv_users.Entity.TipoIdentificacionEntity;
 import co.edu.javeriana.sv_users.Entity.TurnoEntity;
@@ -227,5 +230,17 @@ public class EnfermeraService {
         }
 
         return enfermeraRepository.save(enfermera);
+    }
+
+    public List<LocalidadEntity> getLocalidades() {
+        return localidadRepository.findAll();
+    }
+
+    public List<BarrioEntity> getBarrios(String codigoLocalidad) {
+        List<BarrioEntity> barrios = barrioRepository.findByLocalidad_Codigo(codigoLocalidad);
+        if (barrios.isEmpty()) {
+            throw new RuntimeException("No se encontraron barrios para la localidad especificada");
+        }
+        return barrios;
     }
 }
