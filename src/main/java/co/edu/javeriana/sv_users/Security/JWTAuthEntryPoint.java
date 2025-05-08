@@ -1,4 +1,4 @@
-/*package co.edu.javeriana.sv_users.Security;
+package co.edu.javeriana.sv_users.Security;
 
 import java.io.IOException;
 
@@ -18,4 +18,4 @@ public class JWTAuthEntryPoint implements AuthenticationEntryPoint {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
 
-}*/
+}

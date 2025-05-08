@@ -1,4 +1,4 @@
-/*package co.edu.javeriana.sv_users.Security;
+package co.edu.javeriana.sv_users.Security;
 
 import java.io.IOException;
 
@@ -28,13 +28,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Skip JWT processing for password recovery endpoints
-        String requestPath = request.getRequestURI();
-        if (requestPath.startsWith("/api/password-recovery/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = getJWT(request);
 
         if (token != null && jwtGenerator.validateToken(token)) {
@@ -58,4 +51,3 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-*/
