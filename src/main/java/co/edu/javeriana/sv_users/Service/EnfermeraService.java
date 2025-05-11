@@ -2,6 +2,7 @@ package co.edu.javeriana.sv_users.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -241,6 +242,11 @@ public class EnfermeraService {
         if (barrios.isEmpty()) {
             throw new RuntimeException("No se encontraron barrios para la localidad especificada");
         }
+        System.out.println("Barrios REPOSITORY: " + barrios);
         return barrios;
     }
+
+    public Optional<BarrioEntity> findBarrioByNombre(String nombre) {
+        return barrioRepository.findByNombre(nombre);
+    }   
 }

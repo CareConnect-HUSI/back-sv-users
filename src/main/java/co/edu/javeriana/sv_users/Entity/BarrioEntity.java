@@ -1,5 +1,7 @@
 package co.edu.javeriana.sv_users.Entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -11,6 +13,7 @@ import jakarta.persistence.Table;
 public class BarrioEntity {
     @Id
     private Long id;
+    @JsonProperty("nombre")
     private String nombre;
 
     @ManyToOne

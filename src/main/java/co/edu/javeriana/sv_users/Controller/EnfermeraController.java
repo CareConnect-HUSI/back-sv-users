@@ -1,6 +1,8 @@
 package co.edu.javeriana.sv_users.Controller;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.javeriana.sv_users.DTO.UserDTO;
 import co.edu.javeriana.sv_users.Entity.Account;
+import co.edu.javeriana.sv_users.Entity.BarrioEntity;
 import co.edu.javeriana.sv_users.Entity.EnfermeraEntity;
 import co.edu.javeriana.sv_users.Entity.TipoIdentificacionEntity;
 import co.edu.javeriana.sv_users.Entity.TurnoEntity;
@@ -116,7 +119,7 @@ public class EnfermeraController {
         return ResponseEntity.ok(existente);
     }
 
-    //http://localhost:8088/enfermeras/localidades
+    // http://localhost:8088/enfermeras/localidades
     @GetMapping("/localidades")
     public ResponseEntity<?> getLocalidades() {
         try {
@@ -128,17 +131,27 @@ public class EnfermeraController {
         }
     }
 
-    //http://localhost:8088/enfermeras/barrio/1
+    // http://localhost:8088/enfermeras/barrio/1
     @GetMapping("/barrios/{codigoLocalidad}")
     public ResponseEntity<?> getBarrios(@PathVariable String codigoLocalidad) {
         try {
-            return ResponseEntity.ok(enfermeraService.getBarrios(codigoLocalidad));
+            List<BarrioEntity> barrios = enfermeraService.getBarrios(codigoLocalidad);
+            return ResponseEntity.ok(barrios); // ← ya se serializa correctamente
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }
 
+    @GetMapping("/nombre/{nombre}")
+    public ResponseEntity<?> getBarrioByNombre(@PathVariable String nombre) {
+        Optional<BarrioEntity> optionalBarrio = enfermeraService.findBarrioByNombre(nombre);
+
+        if (optionalBarrio.isPresent()) {
+            return ResponseEntity.ok(optionalBarrio.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Barrio no encontrado");
+        }
+    }
+
 }
-
-
