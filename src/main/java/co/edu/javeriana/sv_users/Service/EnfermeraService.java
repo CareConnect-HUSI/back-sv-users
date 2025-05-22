@@ -117,21 +117,24 @@ public class EnfermeraService {
     }
 
     public Account login(UserDTO user) {
-        if (!enfermeraRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email does not exist");
-        }
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        Long id = enfermeraRepository.findByEmail(user.getEmail()).getId();
-        String email = user.getEmail();
-        String token = jwtGenerator.generateToken(authentication);
-
-        return new Account(id, email, token);
+    EnfermeraEntity enfermera = enfermeraRepository.findByEmail(user.getEmail());
+    if (enfermera == null) {
+        throw new IllegalArgumentException("Correo no registrado");
     }
+
+    if (!"Admin".equals(enfermera.getRolEntity().getName())) {
+        throw new IllegalArgumentException("Acceso restringido a administradoras");
+    }
+
+    Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String token = jwtGenerator.generateToken(authentication);
+
+    return new Account(enfermera.getId(), enfermera.getEmail(), token);
+}
+
 
     public EnfermeraEntity registrar(Map<String, Object> data) {
         String email = (String) data.get("email");

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.edu.javeriana.sv_users.DTO.TipoIdentificacionDTO;
 import co.edu.javeriana.sv_users.DTO.UserDTO;
 import co.edu.javeriana.sv_users.Entity.Account;
 import co.edu.javeriana.sv_users.Entity.BarrioEntity;
@@ -64,7 +65,7 @@ public class EnfermeraController {
         }
     }
 
-    // http://localhost:8080/enfermeras/login
+    // https://localhost:8080/enfermeras/login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO user) {
         try {
@@ -152,6 +153,15 @@ public class EnfermeraController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Barrio no encontrado");
         }
+    }
+
+    @GetMapping("/tipos-identificacion")
+    public ResponseEntity<List<TipoIdentificacionDTO>> obtenerTiposIdentificacion() {
+        List<TipoIdentificacionEntity> tipos = tipoIdentificacionRepository.findAll();
+        List<TipoIdentificacionDTO> tiposDTO = tipos.stream()
+                .map(t -> new TipoIdentificacionDTO(t.getId(), t.getName()))
+                .toList();
+        return ResponseEntity.ok(tiposDTO);
     }
 
 }
