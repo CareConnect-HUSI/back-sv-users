@@ -22,11 +22,12 @@ public class JWTGenerator {
     public Long EXPIRATION_TIME = Long.parseLong(dotenv.get("JWT_EXPIRATION"));
 
     public String generateToken(Authentication authentication) {
+
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + EXPIRATION_TIME);
 
         return Jwts.builder()
-                .setSubject("CareConnect")
+                .setSubject(authentication.getName())
                 .setIssuedAt(currentDate)
                 .setExpiration(expireDate)
                 .signWith(key, SignatureAlgorithm.HS256)

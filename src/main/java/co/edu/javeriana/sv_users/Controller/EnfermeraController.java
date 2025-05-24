@@ -11,6 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +35,7 @@ import co.edu.javeriana.sv_users.Repository.EnfermeraRepository;
 import co.edu.javeriana.sv_users.Repository.RolRepository;
 import co.edu.javeriana.sv_users.Repository.TipoIdentificacionRepository;
 import co.edu.javeriana.sv_users.Repository.TurnoRepository;
+import co.edu.javeriana.sv_users.Security.JWTGenerator;
 import co.edu.javeriana.sv_users.Service.EnfermeraService;
 
 @RestController
@@ -52,6 +57,12 @@ public class EnfermeraController {
     @Autowired
     private TipoIdentificacionRepository tipoIdentificacionRepository;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JWTGenerator jwtGenerator;
+
     // http://localhost:8080/enfermeras/registrar-enfermera
     @PostMapping("/registrar-enfermera")
     public ResponseEntity<?> registrar(@RequestBody Map<String, Object> data) {
@@ -69,13 +80,25 @@ public class EnfermeraController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO user) {
         try {
-            Account account = enfermeraService.login(user);
-            return ResponseEntity.ok(account);
+            // Autenticar al usuario
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
+            );
+
+            // Establecer el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Generar el token
+            String token = jwtGenerator.generateToken(authentication);
+
+            // Puedes retornar un objeto con el token
+            return ResponseEntity.ok(Map.of("token", token));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Credenciales inválidas: " + e.getMessage());
         }
     }
+
 
     // http://localhost:8080/enfermeras
     @GetMapping("")
