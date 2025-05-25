@@ -15,8 +15,8 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JWTGenerator {
 
-    Dotenv dotenv = Dotenv.load();
-    String secret = dotenv.get("SECRET_KEY");
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String secret = dotenv.get("SECRET_KEY");
 
     private Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     public Long EXPIRATION_TIME = Long.parseLong(dotenv.get("JWT_EXPIRATION"));

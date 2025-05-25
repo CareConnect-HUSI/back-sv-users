@@ -1,14 +1,16 @@
 services:
   app:
     build:
-      context: .  
-      dockerfile: Dockerfile  
+      context: .
+      dockerfile: Dockerfile
     container_name: sv-users
     ports:
-      - "${PORT}:${PORT}"  
-    environment:
-      SPRING_PROFILES_ACTIVE: ${ENV}  
-      SERVER_PORT: ${PORT} 
-    env_file:  
-      - .env  
-    restart: always
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+    external: true
