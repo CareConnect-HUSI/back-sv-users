@@ -1,9 +1,4 @@
-/*package co.edu.javeriana.sv_users.Security;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Base64;
+package co.edu.javeriana.sv_users.Security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -13,95 +8,50 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
+    
     @Autowired
     private JWTAuthEntryPoint jwtAuthEntryPoint;
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-        .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable) 
-                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                .sessionManagement(customizer -> customizer
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(requests -> requests
+    
+    @Bean 
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.
+            csrf(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            .authorizeHttpRequests(requests -> requests
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/login/**")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras/registrar-enfermera")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/register-patient")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/request")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/verify")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/patients")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/password-recovery/set-password")).permitAll()
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/exists/*")).permitAll()
-                        .anyRequest().authenticated()
-                );
-                //.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/enfermeras/login")).permitAll()
+                        .anyRequest().authenticated() // ToDo: Change to authenticated when finished testing
+                )
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint));
 
-        //http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
 
     @Bean
     PasswordEncoder passwordEncoder() {
-        return new PasswordEncoder() {
-            @Override
-            public String encode(CharSequence rawPassword) {
-                try {
-                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                    byte[] hash = digest.digest(rawPassword.toString().getBytes());
-                    return Base64.getEncoder().encodeToString(hash); // Codifica en Base64
-                } catch (NoSuchAlgorithmException e) {
-                    throw new RuntimeException("SHA-256 algorithm not found", e);
-                }
-            }
-
-            @Override
-            public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                return encode(rawPassword).equals(encodedPassword); // Compara el hash en Base64
-            }
-        };
+        return new BCryptPasswordEncoder();
     }
-
-
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-    /*@Bean
+    
+    @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();
-    }*/
-
-
+    }
+}

@@ -2,12 +2,12 @@ package co.edu.javeriana.sv_users.Entity;
 
 public class Account {
     private Long id;
-    private String name;
+    private String email;
     private String token;
 
-    public Account(Long id, String name, String token) {
+    public Account(Long id, String email, String token) {
         this.id = id;
-        this.name = name;
+        this.email = email;
         this.token = token;
     }
 
@@ -19,12 +19,12 @@ public class Account {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getEmail() {
+        return email;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getToken() {
